@@ -292,8 +292,11 @@ class HomePage extends StatelessWidget {
                     Icons.biotech,
                     'Lab Tests',
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Lab test booking jald hi aayegi!')),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LabTestListScreen(),
+                        ),
                       );
                     },
                   ),
@@ -548,7 +551,6 @@ class _AppointmentDialogState extends State<AppointmentDialog> {
         ElevatedButton(
           style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white),
           onPressed: () {
-            // New booking add ho rahi hai
             userAppointments.add(
               AppointmentRecord(
                 id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -718,6 +720,264 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                 );
               },
             ),
+    );
+  }
+}
+
+// ----------------- LAB TESTS & BOOKING -----------------
+class LabTest {
+  final String title;
+  final String description;
+  final int price;
+  final String reportTime;
+  final bool fastingRequired;
+
+  const LabTest({
+    required this.title,
+    required this.description,
+    required this.price,
+    required this.reportTime,
+    required this.fastingRequired,
+  });
+}
+
+class LabTestListScreen extends StatelessWidget {
+  const LabTestListScreen({super.key});
+
+  final List<LabTest> tests = const [
+    LabTest(
+      title: 'Complete Blood Count (CBC)',
+      description: 'Hemoglobin, WBC, Platelet count aur infections ki jaanch',
+      price: 299,
+      reportTime: '12 Ghante',
+      fastingRequired: false,
+    ),
+    LabTest(
+      title: 'Diabetes Screen (HbA1c + Sugar)',
+      description: 'Pichhle 3 mahine ka average sugar level test',
+      price: 450,
+      reportTime: '24 Ghante',
+      fastingRequired: true,
+    ),
+    LabTest(
+      title: 'Lipid Profile (Cholesterol)',
+      description: 'Hridya (Heart) ki suraksha aur cholesterol jaanch',
+      price: 550,
+      reportTime: '24 Ghante',
+      fastingRequired: true,
+    ),
+    LabTest(
+      title: 'Full Body Health Checkup',
+      description: '60+ mahatvapurna body parameters ki complete testing',
+      price: 1199,
+      reportTime: '24 to 36 Ghante',
+      fastingRequired: true,
+    ),
+    LabTest(
+      title: 'Thyroid Profile (T3, T4, TSH)',
+      description: 'Thyroid gland hormone balance aur metabolism jaanch',
+      price: 399,
+      reportTime: '18 Ghante',
+      fastingRequired: false,
+    ),
+  ];
+
+  void _openBookingSheet(BuildContext context, LabTest test) {
+    final addressCtrl = TextEditingController();
+    DateTime selectedDate = DateTime.now().add(const Duration(days: 1));
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 18,
+                right: 18,
+                top: 20,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Book Home Sample Collection',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.teal.shade900,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    test.title,
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  ),
+                  Text('Price: ₹${test.price} (Free Sample Pickup)'),
+                  const Divider(height: 20),
+                  const Text('Sample Pickup Date:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.calendar_today, size: 16),
+                    label: Text('${selectedDate.day}/${selectedDate.month}/${selectedDate.year}'),
+                    onPressed: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 14)),
+                      );
+                      if (picked != null) {
+                        setModalState(() => selectedDate = picked);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: addressCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Ghar ka Address (Home Address)',
+                      hintText: 'Colony, Street, City enter karein',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      onPressed: () {
+                        if (addressCtrl.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Kripya apna address enter karein')),
+                          );
+                          return;
+                        }
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Lab Test Book Ho Gaya! Lab technician sample collect karne aayega.',
+                            ),
+                            backgroundColor: Colors.teal,
+                          ),
+                        );
+                      },
+                      child: const Text('Confirm Test Booking'),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Lab Tests & Health Packages'),
+        backgroundColor: Colors.teal,
+        foregroundColor: Colors.white,
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(12),
+        itemCount: tests.length,
+        itemBuilder: (context, index) {
+          final t = tests[index];
+          return Card(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(14.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          t.title,
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Text(
+                        '₹${t.price}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    t.description,
+                    style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Icon(Icons.timer_outlined, size: 16, color: Colors.grey.shade600),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Report: ${t.reportTime}',
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                      ),
+                      const SizedBox(width: 16),
+                      Icon(
+                        t.fastingRequired ? Icons.warning_amber_rounded : Icons.check_circle_outline,
+                        size: 16,
+                        color: t.fastingRequired ? Colors.orange.shade800 : Colors.green,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        t.fastingRequired ? 'Fasting Zaroori' : 'No Fasting',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: t.fastingRequired ? Colors.orange.shade800 : Colors.green,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 20),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      ),
+                      icon: const Icon(Icons.add_task, size: 18),
+                      label: const Text('Book Test'),
+                      onPressed: () => _openBookingSheet(context, t),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
