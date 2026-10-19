@@ -21,6 +21,7 @@ class ShrivastavaSewaApp extends StatelessWidget {
   }
 }
 
+// ----------------- AUTH SCREEN -----------------
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
 
@@ -47,7 +48,6 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void _handleSubmit() {
     if (_formKey.currentState!.validate()) {
-      // Abhi ke liye validation ke baad direct Home Page par bhejte hain
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
@@ -90,8 +90,6 @@ class _AuthScreenState extends State<AuthScreen> {
                     style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
                   ),
                   const SizedBox(height: 32),
-
-                  // Name Field (Registration ke time)
                   if (!isLogin) ...[
                     TextFormField(
                       controller: _nameController,
@@ -111,8 +109,6 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                     const SizedBox(height: 16),
                   ],
-
-                  // Email or Mobile
                   TextFormField(
                     controller: _emailPhoneController,
                     decoration: InputDecoration(
@@ -130,8 +126,6 @@ class _AuthScreenState extends State<AuthScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
-
-                  // Password Field
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
@@ -162,8 +156,6 @@ class _AuthScreenState extends State<AuthScreen> {
                     },
                   ),
                   const SizedBox(height: 24),
-
-                  // Action Button
                   ElevatedButton(
                     onPressed: _handleSubmit,
                     style: ElevatedButton.styleFrom(
@@ -180,8 +172,6 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-
-                  // Toggle between Login & Signup
                   TextButton(
                     onPressed: () {
                       setState(() {
@@ -205,6 +195,7 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 }
 
+// ----------------- HOME PAGE -----------------
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -235,10 +226,49 @@ class HomePage extends StatelessWidget {
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
                 children: [
-                  _buildServiceCard(Icons.local_hospital, 'Doctor Consultation'),
-                  _buildServiceCard(Icons.medication, 'Dawaai (Medicine)'),
-                  _buildServiceCard(Icons.biotech, 'Lab Tests'),
-                  _buildServiceCard(Icons.emergency, 'Emergency 24x7'),
+                  _buildServiceCard(
+                    context,
+                    Icons.local_hospital,
+                    'Doctor Consultation',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DoctorListScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildServiceCard(
+                    context,
+                    Icons.medication,
+                    'Dawaai (Medicine)',
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Medicine store jald hi aayega!')),
+                      );
+                    },
+                  ),
+                  _buildServiceCard(
+                    context,
+                    Icons.biotech,
+                    'Lab Tests',
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Lab test booking jald hi aayegi!')),
+                      );
+                    },
+                  ),
+                  _buildServiceCard(
+                    context,
+                    Icons.emergency,
+                    'Emergency 24x7',
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Emergency Helpline: 108 / 112')),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -248,12 +278,17 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildServiceCard(IconData icon, String title) {
+  Widget _buildServiceCard(
+    BuildContext context,
+    IconData icon,
+    String title, {
+    required VoidCallback onTap,
+  }) {
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Center(
           child: Column(
@@ -270,6 +305,225 @@ class HomePage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ----------------- DOCTOR LIST & BOOKING -----------------
+class Doctor {
+  final String name;
+  final String specialty;
+  final String experience;
+  final int fee;
+  final double rating;
+
+  // Sudhar: Constructor ke aage 'const' add kiya
+  const Doctor({
+    required this.name,
+    required this.specialty,
+    required this.experience,
+    required this.fee,
+    required this.rating,
+  });
+}
+
+class DoctorListScreen extends StatelessWidget {
+  const DoctorListScreen({super.key});
+
+  final List<Doctor> doctors = const [
+    Doctor(
+      name: 'Dr. Alok Verma',
+      specialty: 'General Physician',
+      experience: '10 saal ka anubhav',
+      fee: 300,
+      rating: 4.8,
+    ),
+    Doctor(
+      name: 'Dr. Neha Sharma',
+      specialty: 'Cardiologist (Hridya Rog)',
+      experience: '12 saal ka anubhav',
+      fee: 600,
+      rating: 4.9,
+    ),
+    Doctor(
+      name: 'Dr. Rajesh Patel',
+      specialty: 'Pediatrician (Bachho ke Doctor)',
+      experience: '8 saal ka anubhav',
+      fee: 400,
+      rating: 4.7,
+    ),
+    Doctor(
+      name: 'Dr. Pooja Mishra',
+      specialty: 'Dermatologist (Tawacha Rog)',
+      experience: '6 saal ka anubhav',
+      fee: 350,
+      rating: 4.6,
+    ),
+  ];
+
+  void _openBookingDialog(BuildContext context, Doctor doctor) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AppointmentDialog(doctor: doctor),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Doctor Chunein'),
+        backgroundColor: Colors.teal,
+        foregroundColor: Colors.white,
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(12),
+        itemCount: doctors.length,
+        itemBuilder: (context, index) {
+          final doc = doctors[index];
+          return Card(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(14.0),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Colors.teal.shade100,
+                    child: const Icon(Icons.person, size: 36, color: Colors.teal),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          doc.name,
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          doc.specialty,
+                          style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${doc.experience} • ₹${doc.fee}',
+                          style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.teal),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => _openBookingDialog(context, doc),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.teal,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                    child: const Text('Book'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class AppointmentDialog extends StatefulWidget {
+  final Doctor doctor;
+  const AppointmentDialog({super.key, required this.doctor});
+
+  @override
+  State<AppointmentDialog> createState() => _AppointmentDialogState();
+}
+
+class _AppointmentDialogState extends State<AppointmentDialog> {
+  DateTime selectedDate = DateTime.now();
+  String selectedTime = '10:00 AM';
+
+  final List<String> slots = [
+    '10:00 AM',
+    '11:30 AM',
+    '02:00 PM',
+    '04:30 PM',
+    '06:00 PM',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Book Appointment\n${widget.doctor.name}', style: const TextStyle(fontSize: 18)),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Specialty: ${widget.doctor.specialty}'),
+            Text('Fees: ₹${widget.doctor.fee}'),
+            const Divider(height: 24),
+            const Text('Tarikh (Date):', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.calendar_today, size: 18),
+              label: Text('${selectedDate.day}/${selectedDate.month}/${selectedDate.year}'),
+              onPressed: () async {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: selectedDate,
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime.now().add(const Duration(days: 30)),
+                );
+                if (picked != null) {
+                  setState(() => selectedDate = picked);
+                }
+              },
+            ),
+            const SizedBox(height: 14),
+            const Text('Samay (Time Slot):', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              children: slots.map((slot) {
+                final isSelected = selectedTime == slot;
+                return ChoiceChip(
+                  label: Text(slot),
+                  selected: isSelected,
+                  selectedColor: Colors.teal.shade200,
+                  onSelected: (val) {
+                    if (val) setState(() => selectedTime = slot);
+                  },
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white),
+          onPressed: () {
+            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Appointment Booked! (${widget.doctor.name} - $selectedTime)',
+                ),
+                backgroundColor: Colors.teal,
+              ),
+            );
+          },
+          child: const Text('Confirm'),
+        ),
+      ],
     );
   }
 }
