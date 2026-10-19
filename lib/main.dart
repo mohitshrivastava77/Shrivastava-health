@@ -4,7 +4,6 @@ void main() {
   runApp(const ShrivastavaSewaApp());
 }
 
-// Global booking list taaki screens ke beech data share ho sake
 List<AppointmentRecord> userAppointments = [];
 
 class AppointmentRecord {
@@ -304,9 +303,14 @@ class HomePage extends StatelessWidget {
                     context,
                     Icons.emergency,
                     'Emergency 24x7',
+                    cardColor: Colors.red.shade50,
+                    iconColor: Colors.red.shade700,
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Emergency Helpline: 108 / 112')),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const EmergencyScreen(),
+                        ),
                       );
                     },
                   ),
@@ -324,8 +328,11 @@ class HomePage extends StatelessWidget {
     IconData icon,
     String title, {
     required VoidCallback onTap,
+    Color? cardColor,
+    Color? iconColor,
   }) {
     return Card(
+      color: cardColor,
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
@@ -335,15 +342,185 @@ class HomePage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 40, color: Colors.teal),
+              Icon(icon, size: 40, color: iconColor ?? Colors.teal),
               const SizedBox(height: 10),
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: iconColor != null ? Colors.red.shade900 : Colors.black87,
+                ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ----------------- EMERGENCY 24X7 SCREEN -----------------
+class EmergencyScreen extends StatelessWidget {
+  const EmergencyScreen({super.key});
+
+  void _triggerSos(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning, color: Colors.red),
+            SizedBox(width: 8),
+            Text('SOS Alert Sent!'),
+          ],
+        ),
+        content: const Text(
+          'Aapki emergency alert dispatch team ko bhej di gayi hai. Najdeeki ambulance aur emergency contacts ko notify kar diya gaya hai.',
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Theek Hai'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _callHelpline(BuildContext context, String service, String number) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Calling $service ($number)...'),
+        backgroundColor: Colors.red.shade700,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Emergency Suvidha 24x7'),
+        backgroundColor: Colors.red.shade700,
+        foregroundColor: Colors.white,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.red.shade200),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'Turant Madad Ke Liye Dabayein',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 14),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      shape: const CircleBorder(),
+                      padding: const EdgeInsets.all(32),
+                      backgroundColor: Colors.red.shade700,
+                      foregroundColor: Colors.white,
+                      elevation: 8,
+                    ),
+                    onPressed: () => _triggerSos(context),
+                    child: const Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.sos, size: 48),
+                        Text('TAP SOS', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    'Shrivastava 24x7 Ambulance Dispatch Hub',
+                    style: TextStyle(color: Colors.red.shade900, fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Emergency Direct Helpline',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildEmergencyContactCard(
+              context,
+              title: 'National Ambulance Service',
+              subtitle: 'Free 24x7 medical emergency transport',
+              number: '108',
+              icon: Icons.airport_shuttle,
+            ),
+            _buildEmergencyContactCard(
+              context,
+              title: 'All-In-One Emergency Helpline',
+              subtitle: 'Police, Fire, Ambulance single number',
+              number: '112',
+              icon: Icons.local_police,
+            ),
+            _buildEmergencyContactCard(
+              context,
+              title: 'Central Blood Bank Helpdesk',
+              subtitle: 'Emergency blood donor requirement',
+              number: '104 / 1910',
+              icon: Icons.bloodtype,
+            ),
+            _buildEmergencyContactCard(
+              context,
+              title: 'Shrivastava Hospital Desk',
+              subtitle: 'Direct reception & ICU bed inquiry',
+              number: '+91 98765 43210',
+              icon: Icons.phone_in_talk,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmergencyContactCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required String number,
+    required IconData icon,
+  }) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Colors.red.shade100,
+          child: Icon(icon, color: Colors.red.shade700),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+        trailing: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red.shade700,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          ),
+          onPressed: () => _callHelpline(context, title, number),
+          child: Text(number, style: const TextStyle(fontWeight: FontWeight.bold)),
         ),
       ),
     );
@@ -866,7 +1043,7 @@ class LabTestListScreen extends StatelessWidget {
                         }
                         Navigator.pop(ctx);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
+                          const SnackBar(
                             content: Text(
                               'Lab Test Book Ho Gaya! Lab technician sample collect karne aayega.',
                             ),
